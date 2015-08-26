@@ -1,10 +1,12 @@
 __author__ = 'blakeallan'
 
 import os
-import send2trash
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
+
+import send2trash
+
 
 root = tk.Tk()
 root.withdraw()
