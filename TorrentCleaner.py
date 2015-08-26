@@ -1,7 +1,6 @@
 __author__ = 'blakeallan'
 
 import os
-from os.path import abspath, expanduser
 import send2trash
 import tkinter as tk
 from tkinter import filedialog
@@ -16,12 +15,10 @@ badExtension = ".txt", ".jpg", ".png", ".srt", ".torrent", ".nfo"
 # Folder location of media stored in a variable using tkinter file browser
 filepath = filedialog.askdirectory()
 
-print("\nScanning: ", filepath, "\n")
-
 # variables to keep track of file sizes, directory sizes, and size of files to be deleted
 totalScanned = 0
 totalDeleted = 0
-badFileCount = 1
+badFileCount = 0
 
 for root, dirs, files in os.walk(filepath):
     for file in files:
@@ -38,6 +35,7 @@ for root, dirs, files in os.walk(filepath):
             gigabytes = round(deletedfileSize / 1073741824, 2)
 
             print("Found: ", file)
+
             # Case to print file size in Gb or Mb depending on size
             if gigabytes > 1:
                 print("File Size = ", gigabytes, "Gb\n")
@@ -47,8 +45,6 @@ for root, dirs, files in os.walk(filepath):
             # Update the total size of bad files
             totalDeleted += deletedfileSize
             badFileCount += 1
-
-print("\nScan Complete")
 
 if round(totalDeleted / 1073741824, 2) > 1:
     totalGbDeleted = round(totalDeleted / 1073741824, 2)
@@ -60,7 +56,6 @@ else:
     message = "Found " + str(badFileCount) + " bad files\nTotal storage to cleared: " + str(totalMbDeleted) + "Mb"
 
 shouldDelete = messagebox.askquestion("Delete?", message)
-print(message)
 
 if shouldDelete == "yes":
     for root, dirs, files in os.walk(filepath):
