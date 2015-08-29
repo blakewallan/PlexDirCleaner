@@ -14,34 +14,54 @@ root.withdraw()
 from imdb import *
 import imdb.helpers
 
+# Using send2trash instead of os.remove
 import send2trash
 
-from google import search
+# Module searches Bing with registered APPID and returns specified amount of results
+from bingpy import WebSearch
 
 # Bloat file extensions, commonly in torrent files, to be deleted
 badExtension = ".txt", ".jpg", ".png", ".srt", ".torrent", ".nfo", ".DS_Store"
 
+crapFileStrings = ["1080p", "brrip", "720p", "yify", "rargb", "web-dl", "bluray", "hdrip", "dvdscr", "hd", "hdtv", "hc",
+                   "rip", "x264", "dvdrip", "avi", "mp4", "mkv", "mpeg"]
+
 # Folder location of media stored in a variable using tkinter file browser
 filepath = askdirectory()
 
+# Access to the IMDB library
 imdbAccess = IMDb()
 ia = IMDb('http')
 
+# Function compares modified file title against a list of unnaceptable crap file strings often included in torrent DL's
+def badWords(wordList, movieTitle):
+    return set(wordList).intersection(movieTitle.split())
 
+
+# Function strips periods from file names, and stores just the first four words to avoid junk in the name
+#Then uses google search to retreive the imdb URL by adding "site: imdb.com" to the end of the search
+#Then uses the imdb url to retreive the movies title using get_byURL
 def renameFiles():
     for root, dirs, files in os.walk(filepath):
         for file in files:
+
             strip = str((file.replace(".", " ")))
-            shortURL = str(strip.split()[:4])
-            print(shortURL)
+            shortURL = str(strip.split()[:4]).replace("[", "").replace("'", "").replace(",", "").replace("]", "")
+            shortURL = str.lower(shortURL)
+
+            if badWords(crapFileStrings, shortURL):
+                for word in badWords(crapFileStrings, shortURL):
+                    shortURL = shortURL.replace(word, "")
 
             p = ttk.Progressbar(mode='determinate')
             p.update_idletasks()
 
-            for url in search(shortURL + " site: imdb.com", num=1, stop=1):
-                newFileName = str(imdb.helpers.get_byURL(url))
+            web = WebSearch("0wYsR23LZOF46/s1Nzolb+9sxjN4wIkeYA7rfNUpaDg")
+            pages = web.search(shortURL + " site:imdb.com", 1)
+            for page in pages:
+                newFileName = str(imdb.helpers.get_byURL(page.url))
 
-            print(file)
+            print(shortURL)
             print(newFileName)
 
 
@@ -61,7 +81,6 @@ def countFiles():
 
             if file.endswith(badExtension) or (
                             (os.path.getsize(fileSize) / 1048576) < 20 and (os.path.getsize(fileSize) / 1048576) > 0.1):
-
                 badFile = (os.path.join(root, file))
 
                 deletedfileSize = os.path.getsize(badFile)
@@ -105,7 +124,9 @@ def deleteFiles():
         quit()
 
 
-
+renameFiles()
+countFiles()
+deleteFiles()
 
 
 
