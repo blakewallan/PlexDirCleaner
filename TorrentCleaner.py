@@ -38,33 +38,6 @@ def badWords(wordList, movieTitle):
     return set(wordList).intersection(movieTitle.split())
 
 
-# Function strips periods from file names, and stores just the first four words to avoid junk in the name
-#Then uses google search to retreive the imdb URL by adding "site: imdb.com" to the end of the search
-#Then uses the imdb url to retreive the movies title using get_byURL
-def renameFiles():
-    for root, dirs, files in os.walk(filepath):
-        for file in files:
-
-            strip = str((file.replace(".", " ")))
-            shortURL = str(strip.split()[:4]).replace("[", "").replace("'", "").replace(",", "").replace("]", "")
-            shortURL = str.lower(shortURL)
-
-            if badWords(crapFileStrings, shortURL):
-                for word in badWords(crapFileStrings, shortURL):
-                    shortURL = shortURL.replace(word, "")
-
-            p = ttk.Progressbar(mode='determinate')
-            p.update_idletasks()
-
-            web = WebSearch("0wYsR23LZOF46/s1Nzolb+9sxjN4wIkeYA7rfNUpaDg")
-            pages = web.search(shortURL + " site:imdb.com", 1)
-            for page in pages:
-                newFileName = str(imdb.helpers.get_byURL(page.url))
-
-            print(shortURL)
-            print(newFileName)
-
-
 def countFiles():
     # variables to keep track of file sizes, directory sizes, and size of files to be deleted
     totalScanned = 0
@@ -90,30 +63,65 @@ def countFiles():
                 badFileCount += 1
 
         # If bad files add up to more that one GB display using GB
-        if round(totalDeleted / 1073741824, 2) > 1:
+        if round(totalDeleted / 1073741824) > 1:
             totalGbDeleted = round(totalDeleted / 1073741824, 2)
             message = "Found " + str(badFileCount) + " bad files\nTotal storage to cleared: " + str(
                 totalGbDeleted) + "Gb"
+            return message
 
         # Else display in MB
         else:
-            round(totalDeleted / 1048576, 2)
+            round(totalDeleted / 1048576)
             totalMbDeleted = round(totalDeleted / 1048576, 2)
             message = "Found " + str(badFileCount) + " bad files\nTotal storage to cleared: " + str(
                 totalMbDeleted) + "Mb"
+            return message
 
-        # Return the status of the files
-        return message
+
+# Function strips periods from file names, and stores just the first four words to avoid junk in the name
+# Then uses google search to retreive the imdb URL by adding "site: imdb.com" to the end of the search
+#Then uses the imdb url to retreive the movies title using get_byURL
+def renameFiles():
+    for root, dirs, files in os.walk(filepath):
+        for file in files:
+
+            strip = str((file.replace(".", " ")))
+            shortURL = str(strip.split()[:4]).replace("[", "").replace("'", "").replace(",", "").replace("]", "")
+            shortURL = str.lower(shortURL)
+
+            if badWords(crapFileStrings, shortURL):
+                for word in badWords(crapFileStrings, shortURL):
+                    shortURL = shortURL.replace(word, "")
+
+            p = ttk.Progressbar(mode='determinate')
+            p.update_idletasks()
+
+            # Login for bing search API
+            web = WebSearch("0wYsR23LZOF46/s1Nzolb+9sxjN4wIkeYA7rfNUpaDg")
+            pages = web.search(shortURL + " site:imdb.com", 1)
+            for page in pages:
+                newFileName = str(imdb.helpers.get_byURL(page.url))
+
+            print(shortURL)
+            print(newFileName)
+
+
+def renameDirs():
+    for root, dirs, files in os.walk(filepath):
+        # print root
+        #print dirs
+        print files
 
 
 def deleteFiles():
-    shouldDelete = tkMessageBox.askquestion("Delete?", countFiles())
+    countStatus = str(countFiles())
+    shouldDelete = tkMessageBox.askquestion("Delete?", countStatus)
     if shouldDelete == "yes":
         for root, dirs, files in os.walk(filepath):
             for file in files:
                 fileSize = (os.path.join(root, file))
                 if file.endswith(badExtension) or (
-                                (os.path.getsize(fileSize) / 1048576) < 20 and (
+                                (os.path.getsize(fileSize) / 1048576) < 30 and (
                                     os.path.getsize(fileSize) / 1048576) > 0.1):
                     badFile = (os.path.join(root, file))
                     send2trash.send2trash(badFile)
@@ -123,9 +131,8 @@ def deleteFiles():
     else:
         quit()
 
-
-renameFiles()
 countFiles()
+renameDirs()
 deleteFiles()
 
 
