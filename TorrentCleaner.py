@@ -93,9 +93,6 @@ def renameFiles():
                 for word in badWords(crapFileStrings, shortURL):
                     shortURL = shortURL.replace(word, "")
 
-            p = ttk.Progressbar(mode='determinate')
-            p.update_idletasks()
-
             # Login for bing search API
             web = WebSearch("0wYsR23LZOF46/s1Nzolb+9sxjN4wIkeYA7rfNUpaDg")
             pages = web.search(shortURL + " site:imdb.com", 1)
